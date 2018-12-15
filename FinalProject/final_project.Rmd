@@ -414,13 +414,6 @@ turn it also does feature selection.
 
 - LASSO introduction: http://ricardoscr.github.io/how-to-use-ridge-and-lasso-in-r.html
 
-- Let's fill up the NA's of each column using the median for numerical variables and
-the most popular or frequent for categorical variables
-
-```{r fillNAs}
-
-```
-
 ```{r buildmodel}
 features <- setdiff(names(household), "SalePrice")
 objtrain_hashed <- hashed.model.matrix(~., data=household[, features], hash.size = 2^12,
@@ -431,9 +424,9 @@ cv.fit <- cv.glmnet(x=objtrain_hashed, y=household$SalePrice, type.measure = "ms
 plot(cv.fit)
 ```
 
-- So after replacing our NA values and doing a LASSO regression, we see that the algorithm
-based on the plot has the lambda minimum value of about 65 variables and based on the graph,
-taking the lambda minimum (first dotted line on the left) has a smaller mean squared error.
+- We see that the algorithm based on the plot has the lambda minimum value of about 65 
+variables and based on the graph, taking the lambda minimum (first dotted line on the left) 
+has a smaller mean squared error.
 This lambda value will be used in our predictions of the test dataset.
 
 - Finally let's use this model to predict the Saleprice in the test dataset and submit it to kaggle.
