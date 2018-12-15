@@ -261,13 +261,18 @@ ggplot(household, aes(KitchenQual,SalePrice)) +
         axis.text.x = element_blank())
 ```
 
-- Plots show that the Sale price is quite left skewed and the lot area is heavily left-skewed; good for analysis later.
+- Plots show that the Sale price is quite left skewed and the lot area is 
+heavily left-skewed; good for analysis later.
 
-- We also see that the median price of sold homes is about the same for each year. For normal sale conditions,
-there are heavy outliers and that could make a influence in our model and analysis. The same goes for fairly decent homes in okay external condition.
+- We also see that the median price of sold homes is about the same for each year. 
+For normal sale conditions, there are heavy outliers and that could make a influence 
+in our model and analysis. 
+The same goes for fairly decent homes in okay external condition.
 
-- Let's create a scatterplot matrix using the pairs() function and see the visualization. I will look at the most common
-things I feel are most important in looking for a place to call home such as Year sold, kitchen quality, heating, overall condition, neighborhood, lot area, and sale price.
+- Let's create a scatterplot matrix using the pairs() function and see the visualization. 
+I will look at the most common things I feel are most important in looking for a place 
+to call home such as Year sold, kitchen quality, heating, overall condition,
+neighborhood, lot area, and sale price.
 
 ```{r scatterplotmatrix}
 columns_scatterplotmatrix <- c("YrSold", "KitchenQual", "Heating", "OverallCond", "Neighborhood",
@@ -294,7 +299,8 @@ cor_matrix
 
  a) Null hypothesis: $cor(x,y) = 0$ that is there is not correlation between the two variables in question
  
- b) Alternative hypothesis: $cor(x,y) \neq 0$ that is there is some correlation big or small between the two variables.
+ b) Alternative hypothesis: $cor(x,y) \neq 0$ that is there is some correlation big or small between 
+ the two variables.
  
 ```{r 80confint}
 cor.test(household$SalePrice, household$LotArea, method = "pearson", conf.level = 0.8)
@@ -305,17 +311,20 @@ cor.test(household$SalePrice, household$GarageArea, method = "pearson", conf.lev
 - Based on these correlation tests, we can see that we can reject the null hypothesis and favor
 the alternative that is $cor(x,y) \neq 0$ for the variables chosen.
 
-- There is a quite strong positive correlation between SalePrice (dependent variable) and GarageArea (independent variable).
-This makes sense as if one is buying a home, the sale price changes based on the area of the garage.
+- There is a quite strong positive correlation between SalePrice (dependent variable) and GarageArea (independent variable).This makes sense as if one is buying a home, the sale price changes based on 
+the area of the garage.
 
-- Lot area doesn't have strong correlation with regards to sale price which it could be lot area may not have much impact on sale price. Same also goes for lot area and garage area.
+- Lot area doesn't have strong correlation with regards to sale price which it could be lot area may 
+not have much impact on sale price. Same also goes for lot area and garage area.
 
 - We are 80% confident the true correlation is within the intervals above for the specified variables.
 
 - Familywise error is defined as $FWE \leq 1 - (1-\alpha_{IT})^c$ and is the probability of coming to at least one
-false conclusion in a series of hypothesis tests. $\alpha_{IT}$ is the alpha level for an individual test (in this case 0.2) and c is the number of comparisions. c =  3 test and computing the familywise error gives
+false conclusion in a series of hypothesis tests. $\alpha_{IT}$ is the alpha level for an individual test 
+(in this case 0.2) and c is the number of comparisions. c =  3 test and computing the familywise error gives
 
-- $FWE \leq 1 - (1-\alpha_{IT})^c = 1 - (1-0.2)^3 = 0.488$ which is quite high considering only 3 tests were made and something that would have to be concern of getting a type 1 error.
+- $FWE \leq 1 - (1-\alpha_{IT})^c = 1 - (1-0.2)^3 = 0.488$ which is quite high considering only 
+3 tests were made and something that would have to be concern of getting a type 1 error.
 
 ### Linear Algebra and Correlation
 
@@ -414,22 +423,25 @@ the most popular or frequent for categorical variables
 
 ```{r buildmodel}
 features <- setdiff(names(household), "SalePrice")
-objtrain_hashed <- hashed.model.matrix(~., data=household[, features], hash.size = 2^12, transpose = FALSE)
+objtrain_hashed <- hashed.model.matrix(~., data=household[, features], hash.size = 2^12,
+                                       transpose = FALSE)
 objtrain_hashed <- as(objtrain_hashed, "dgCMatrix")
 
 cv.fit <- cv.glmnet(x=objtrain_hashed, y=household$SalePrice, type.measure = "mse")
+plot(cv.fit)
 ```
 
 - So after replacing our NA values and doing a LASSO regression, we see that the algorithm
-based on the plot has the lambda minimum value of about 136 variables and using a lambda value
-larger gives less factors about 56 variables. The higher lambda is considered (1 standard error
-from the minimum lambda value). 
+based on the plot has the lambda minimum value of about 65 variables and based on the graph,
+taking the lambda minimum (first dotted line on the left) has a smaller mean squared error.
+This lambda value will be used in our predictions of the test dataset.
 
 - Finally let's use this model to predict the Saleprice in the test dataset and submit it to kaggle.
 
 ```{r predicttest}
 household_test <- read.csv("all/test.csv")
-objtest_hashed <- hashed.model.matrix(~., data=household_test[, features], hash.size =2^12, transpose = FALSE)
+objtest_hashed <- hashed.model.matrix(~., data=household_test[, features], hash.size =2^12,
+                                      transpose = FALSE)
 objtest_hashed <- as(objtest_hashed, "dgCMatrix")
 household_predict <- predict(cv.fit, objtest_hashed, s="lambda.min")
 
